@@ -55,7 +55,7 @@ echo
 # Check for sudo permissions
 print_info "Checking sudo permissions..."
 if ! sudo -n true 2>/dev/null; then
-    print_warning "This script requires sudo access to install to /usr/share/helium/"
+    print_warning "This script requires sudo access to install Widevine CDM"
     echo
     echo -n "Gimmie dat sudo access >:3   "
     if ! sudo true; then
@@ -81,9 +81,32 @@ fi
 print_success "Found Chrome version: $_chrome_ver"
 echo
 
-# Set target directory
-_target_dir=/usr/share/helium/WidevineCdm
-print_info "Target directory: $_target_dir"
+# Detect Helium install locations
+_search_dirs=("/usr/share/helium" "/opt/helium-browser-bin")
+_helium_installs=()
+
+for _dir in "${_search_dirs[@]}"; do
+    if compgen -G "$_dir"/*.desktop > /dev/null 2>&1; then
+        _helium_installs+=("$_dir")
+    fi
+done
+
+if [ ${#_helium_installs[@]} -eq 0 ]; then
+    print_error "Could not find Helium installation"
+    print_warning "Looked in: ${_search_dirs[*]}"
+    echo -n "Enter your Helium install path manually: "
+    read -r _manual_path
+    if [ ! -d "$_manual_path" ]; then
+        print_error "Directory '$_manual_path' does not exist"
+        exit 1
+    fi
+    _helium_installs+=("$_manual_path")
+fi
+
+for _install in "${_helium_installs[@]}"; do
+    print_success "Found Helium at: $_install"
+done
+print_info "Widevine will be installed to ${#_helium_installs[@]} location(s)"
 echo
 
 # Create temporary directory
@@ -137,14 +160,16 @@ _widevine_version=$(cat unpack_deb/opt/google/chrome/WidevineCdm/manifest.json |
 print_success "Found Widevine CDM version: $_widevine_version"
 echo
 
-# Install to Helium directory
+# Install to all detected Helium directories
 print_info "Installing Widevine to Helium..."
-sudo mkdir -p "$(dirname "$_target_dir")"
-sudo rm -rf "$_target_dir"
-sudo mv unpack_deb/opt/google/chrome/WidevineCdm "$_target_dir"
-sudo chown -R root:root "$_target_dir"
-sudo chmod -R 755 "$_target_dir"
-print_success "Widevine installed to $_target_dir"
+for _install in "${_helium_installs[@]}"; do
+    _target_dir="$_install/WidevineCdm"
+    sudo rm -rf "$_target_dir"
+    sudo cp -r unpack_deb/opt/google/chrome/WidevineCdm "$_target_dir"
+    sudo chown -R root:root "$_target_dir"
+    sudo chmod -R 755 "$_target_dir"
+    print_success "Widevine installed to $_target_dir"
+done
 echo
 
 # Cleanup
