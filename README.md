@@ -22,7 +22,7 @@ chmod +x fixdrmplz.sh
 
 ### the lazy way
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/your-user/fix-helium-drm-plz/main/fixdrmplz.sh)
+curl -s https://raw.githubusercontent.com/tuibird/fix-helium-drm-plz/main/fixdrmplz.sh | sh
 ```
 
 ### after it runs
