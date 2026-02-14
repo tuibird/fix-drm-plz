@@ -9,4 +9,4 @@ It downloads the latest stable Chrome .deb, extracts the widevine component from
 - Fedora 43
 - CachyOS
 
-If you give me your helium directories I'll update it to work for you :D
+If you give me your helium directories on your weird ass OS, I'll update it to work for you too :D
